@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#1a1024">
+  <title>計算機 · SPCCPS P6 第二課</title>
+  <style>
+    :root {
+      --bg: #1a1024;
+      --card: #2a1b38;
+      --text: #fff7fb;
+      --muted: #c7b3d4;
+      --pink: #ff5d8f;
+      --peach: #ff9f68;
+      --mint: #8ef0c8;
+      --sky: #7ad7ff;
+      --lemon: #ffd166;
+      --lilac: #c9b6ff;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { color-scheme: dark; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      padding: 24px 16px;
+      display: grid;
+      place-items: center;
+      background: #120a18;
+      color: var(--text);
+      font-family: "PingFang HK", "PingFang TC", "Noto Sans CJK TC", "Noto Sans TC", "Microsoft JhengHei", "Heiti TC", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font-family: inherit; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+    h1, p { margin: 0; }
+
+    .app {
+      width: min(420px, 100%);
+      height: min(880px, calc(100dvh - 48px));
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    }
+
+    header { padding: calc(18px + env(safe-area-inset-top)) 18px 4px; }
+    .eyebrow { color: var(--muted); font-size: 13px; font-weight: 650; }
+    h1 { font-size: 34px; letter-spacing: -0.03em; line-height: 1.1; }
+    .standin { margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    .rule {
+      margin: 10px 18px 0;
+      background: rgba(255, 209, 102, 0.14);
+      color: var(--lemon);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .readout {
+      padding: 12px 18px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .stage { min-width: 0; }
+    .stage span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+    }
+
+    #expr, #process, #output {
+      margin-top: 2px;
+      overflow-wrap: anywhere;
+    }
+
+    #expr {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.25;
+      min-height: 36px;
+    }
+
+    #process {
+      color: #f3e9ff;
+      font-size: 15px;
+      line-height: 1.45;
+      min-height: 44px;
+    }
+
+    #output {
+      font-size: 56px;
+      font-weight: 720;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      font-variant-numeric: tabular-nums;
+      min-height: 64px;
+    }
+
+    #output.is-error { color: #ff8fa8; font-size: 36px; }
+    #output.is-wait { color: var(--muted); font-size: 28px; font-weight: 650; }
+
+    .keys {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 8px 14px calc(14px + env(safe-area-inset-bottom));
+    }
+
+    .key {
+      border: 0;
+      border-radius: 16px;
+      min-height: 62px;
+      background: #3a284c;
+      color: white;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .key.fn { background: var(--lilac); color: #2a1840; font-size: 18px; }
+    .key.op-div { background: var(--sky); color: #062033; }
+    .key.op-mul { background: var(--mint); color: #062116; }
+    .key.op-sub { background: var(--lemon); color: #2a1d04; }
+    .key.op-add { background: var(--peach); color: #2a100c; }
+    .key.eq { background: var(--pink); color: white; }
+    .span-2 { grid-column: span 2; }
+    .key:active { filter: brightness(1.12); }
+
+    :focus-visible { outline: 2px solid var(--lemon); outline-offset: 2px; }
+
+    @media (max-width: 560px) {
+      body { display: block; padding: 0; background: var(--bg); }
+      .app {
+        width: 100%;
+        height: 100dvh;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+
+    @media (max-height: 740px) {
+      h1 { font-size: 28px; }
+      #expr { font-size: 22px; }
+      #output { font-size: 42px; }
+      .key { min-height: 52px; font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <p class="eyebrow">小六 · 第二課</p>
+      <h1>計算機</h1>
+      <p class="standin">瀏覽器示範，對應課堂的 SwiftUI 計算機。每個 App 都是輸入 → 處理 → 輸出。</p>
+    </header>
+    <p class="rule">規則：先乘除，後加減。不能除以 0。</p>
+    <section class="readout" aria-live="polite">
+      <div class="stage">
+        <span>輸入</span>
+        <p id="expr">0</p>
+      </div>
+      <div class="stage">
+        <span>處理</span>
+        <p id="process">試一試：12 + 7 × 2。先乘除，所以是 26，不是 38。</p>
+      </div>
+      <div class="stage">
+        <span>輸出</span>
+        <p id="output" class="is-wait">按 = 計算</p>
+      </div>
+    </section>
+    <div class="keys">
+      <button type="button" class="key fn span-2" data-act="clear">清除</button>
+      <button type="button" class="key fn" data-act="back" aria-label="刪除">⌫</button>
+      <button type="button" class="key op-div" data-op="÷">÷</button>
+      <button type="button" class="key" data-digit="7">7</button>
+      <button type="button" class="key" data-digit="8">8</button>
+      <button type="button" class="key" data-digit="9">9</button>
+      <button type="button" class="key op-mul" data-op="×">×</button>
+      <button type="button" class="key" data-digit="4">4</button>
+      <button type="button" class="key" data-digit="5">5</button>
+      <button type="button" class="key" data-digit="6">6</button>
+      <button type="button" class="key op-sub" data-op="−">−</button>
+      <button type="button" class="key" data-digit="1">1</button>
+      <button type="button" class="key" data-digit="2">2</button>
+      <button type="button" class="key" data-digit="3">3</button>
+      <button type="button" class="key op-add" data-op="+">+</button>
+      <button type="button" class="key span-2" data-digit="0">0</button>
+      <button type="button" class="key" data-act="dot">.</button>
+      <button type="button" class="key eq" data-act="eq">=</button>
+    </div>
+  </div>
+  <noscript><p>請啟用 JavaScript 以使用計算機。</p></noscript>
+  <script>
+    var state = {
+      tokens: [],
+      current: "0",
+      justEvaluated: false,
+      error: false,
+      expressionText: "0",
+      processText: "試一試：12 + 7 × 2。先乘除，所以是 26，不是 38。",
+      outputText: "按 = 計算",
+      waiting: true
+    };
+
+    function roundCalc(n) {
+      if (!isFinite(n)) return n;
+      var rounded = Number(n.toPrecision(12));
+      if (Object.is(rounded, -0)) return 0;
+      return rounded;
+    }
+
+    function formatNum(n) {
+      if (!isFinite(n)) return "錯誤";
+      var rounded = roundCalc(n);
+      var abs = Math.abs(rounded);
+      if (rounded !== 0 && (abs >= 1e10 || abs < 1e-6)) {
+        return rounded.toExponential(4).replace(/\.?0+e/, "e");
+      }
+      return String(rounded);
+    }
+
+    function parseCurrent() {
+      if (state.current == null || state.current === "" || state.current === ".") return null;
+      var n = Number(state.current);
+      if (!isFinite(n)) return null;
+      return n;
+    }
+
+    function explain(tokens) {
+      var work = tokens.slice();
+      var steps = [];
+      var i = 1;
+      while (i < work.length) {
+        var op = work[i];
+        if (op === "×" || op === "÷") {
+          var left = work[i - 1];
+          var right = work[i + 1];
+          if (typeof right !== "number" || typeof left !== "number") return { error: true };
+          if (op === "÷" && right === 0) return { error: true };
+          var value = roundCalc(op === "×" ? left * right : left / right);
+          steps.push(formatNum(left) + " " + op + " " + formatNum(right) + " = " + formatNum(value));
+          work.splice(i - 1, 3, value);
+        } else {
+          i += 2;
+        }
+      }
+      if (work.length === 1) return { result: work[0], steps: steps };
+      var acc = work[0];
+      for (var j = 1; j < work.length; j += 2) {
+        var op2 = work[j];
+        var right2 = work[j + 1];
+        if (typeof right2 !== "number" || typeof acc !== "number") return { error: true };
+        var next = roundCalc(op2 === "+" ? acc + right2 : acc - right2);
+        steps.push(formatNum(acc) + " " + op2 + " " + formatNum(right2) + " = " + formatNum(next));
+        acc = next;
+      }
+      return { result: acc, steps: steps };
+    }
+
+    function expressionFrom(tokens, current) {
+      var parts = tokens.map(function (token) {
+        return typeof token === "number" ? formatNum(token) : token;
+      });
+      if (current != null) parts.push(current);
+      return parts.join(" ") || "0";
+    }
+
+    function render() {
+      document.getElementById("expr").textContent = state.expressionText;
+      document.getElementById("process").textContent = state.processText;
+      var output = document.getElementById("output");
+      output.textContent = state.outputText;
+      output.classList.toggle("is-error", state.error);
+      output.classList.toggle("is-wait", state.waiting && !state.error);
+    }
+
+    function resetAll() {
+      state.tokens = [];
+      state.current = "0";
+      state.justEvaluated = false;
+      state.error = false;
+      state.waiting = true;
+      state.expressionText = "0";
+      state.processText = "試一試：12 + 7 × 2。先乘除，所以是 26，不是 38。";
+      state.outputText = "按 = 計算";
+      render();
+    }
+
+    function refreshEntry() {
+      state.error = false;
+      state.waiting = true;
+      state.expressionText = expressionFrom(state.tokens, state.current);
+      var trailingOp = state.tokens.length && typeof state.tokens[state.tokens.length - 1] === "string" && state.current == null;
+      if (trailingOp) {
+        state.processText = "再輸入數字，然後按 =。會先算乘除，再算加減。";
+        state.outputText = "先輸入數字";
+      } else {
+        state.processText = "按 = 之後，會先算乘除，再算加減。";
+        state.outputText = "按 = 計算";
+      }
+      render();
+    }
+
+    function onDigit(d) {
+      if (state.error || state.justEvaluated) {
+        state.tokens = [];
+        state.current = d;
+        state.error = false;
+        state.justEvaluated = false;
+      } else if (state.current == null) {
+        state.current = d;
+      } else if (state.current === "0") {
+        state.current = d;
+      } else if (state.current.replace(".", "").length >= 12) {
+        return;
+      } else {
+        state.current += d;
+      }
+      refreshEntry();
+    }
+
+    function onDot() {
+      if (state.error || state.justEvaluated) {
+        state.tokens = [];
+        state.current = "0.";
+        state.error = false;
+        state.justEvaluated = false;
+      } else if (state.current == null) {
+        state.current = "0.";
+      } else if (state.current.indexOf(".") !== -1) {
+        return;
+      } else {
+        state.current += ".";
+      }
+      refreshEntry();
+    }
+
+    function pushCurrent() {
+      var n = parseCurrent();
+      if (n == null) return false;
+      state.tokens.push(n);
+      state.current = null;
+      return true;
+    }
+
+    function onOperator(op) {
+      if (state.error) return;
+      if (state.justEvaluated) {
+        var n = parseCurrent();
+        state.tokens = n == null ? [] : [n];
+        state.current = null;
+        state.justEvaluated = false;
+        if (!state.tokens.length) return;
+        state.tokens.push(op);
+        refreshEntry();
+        return;
+      }
+      if (state.current != null) {
+        if (!pushCurrent()) return;
+        state.tokens.push(op);
+      } else if (state.tokens.length && typeof state.tokens[state.tokens.length - 1] === "string") {
+        state.tokens[state.tokens.length - 1] = op;
+      } else if (state.tokens.length && typeof state.tokens[state.tokens.length - 1] === "number") {
+        state.tokens.push(op);
+      } else {
+        return;
+      }
+      refreshEntry();
+    }
+
+    function onEquals() {
+      if (state.error) return;
+      if (state.current != null) {
+        if (!pushCurrent()) return;
+      }
+      if (state.tokens.length && typeof state.tokens[state.tokens.length - 1] === "string") {
+        state.tokens.pop();
+      }
+      if (!state.tokens.length) return;
+      var expr = state.tokens.slice();
+      var explained = explain(expr);
+      state.expressionText = expressionFrom(expr, null);
+      if (explained.error) {
+        state.error = true;
+        state.waiting = false;
+        state.justEvaluated = false;
+        state.processText = "除數是 0，不能計算。";
+        state.outputText = "不能除以 0";
+        state.tokens = [];
+        state.current = "0";
+        render();
+        return;
+      }
+      var result = roundCalc(explained.result);
+      state.processText = explained.steps.length
+        ? explained.steps.join("，再 ")
+        : "這是一個數字，不用計算。";
+      state.outputText = formatNum(result);
+      state.waiting = false;
+      state.error = false;
+      state.tokens = [];
+      state.current = formatNum(result);
+      state.justEvaluated = true;
+      render();
+    }
+
+    function onBackspace() {
+      if (state.error || state.justEvaluated) {
+        resetAll();
+        return;
+      }
+      if (state.current != null) {
+        if (state.current.length <= 1) state.current = state.tokens.length ? null : "0";
+        else state.current = state.current.slice(0, -1);
+        refreshEntry();
+        return;
+      }
+      if (!state.tokens.length) {
+        state.current = "0";
+        refreshEntry();
+        return;
+      }
+      var last = state.tokens.pop();
+      if (typeof last === "number") {
+        var text = formatNum(last);
+        state.current = text.length <= 1 ? (state.tokens.length ? null : "0") : text.slice(0, -1);
+      }
+      refreshEntry();
+    }
+
+    function bind() {
+      document.querySelector(".keys").addEventListener("click", function (event) {
+        var key = event.target.closest("button");
+        if (!key) return;
+        if (key.dataset.digit) onDigit(key.dataset.digit);
+        else if (key.dataset.op) onOperator(key.dataset.op);
+        else if (key.dataset.act === "dot") onDot();
+        else if (key.dataset.act === "eq") onEquals();
+        else if (key.dataset.act === "clear") resetAll();
+        else if (key.dataset.act === "back") onBackspace();
+      });
+
+      document.addEventListener("keydown", function (event) {
+        var k = event.key;
+        if (k >= "0" && k <= "9") { onDigit(k); return; }
+        if (k === ".") { onDot(); return; }
+        if (k === "+") { onOperator("+"); return; }
+        if (k === "-") { onOperator("−"); return; }
+        if (k === "*" || k === "x" || k === "X" || k === "×") { onOperator("×"); return; }
+        if (k === "/" || k === "÷") { event.preventDefault(); onOperator("÷"); return; }
+        if (k === "Enter" || k === "=") { event.preventDefault(); onEquals(); return; }
+        if (k === "Backspace") { event.preventDefault(); onBackspace(); return; }
+        if (k === "Escape") resetAll();
+      });
+    }
+
+    bind();
+    render();
+
+    window.__demo = {
+      explain: explain,
+      press: function (keys) {
+        String(keys).split("").forEach(function (ch) {
+          if (ch >= "0" && ch <= "9") onDigit(ch);
+          else if (ch === ".") onDot();
+          else if (ch === "+") onOperator("+");
+          else if (ch === "-") onOperator("−");
+          else if (ch === "*") onOperator("×");
+          else if (ch === "/") onOperator("÷");
+          else if (ch === "=") onEquals();
+          else if (ch === "c") resetAll();
+          else if (ch === "<") onBackspace();
+        });
+      },
+      output: function () { return state.outputText; },
+      expr: function () { return state.expressionText; },
+      process: function () { return state.processText; }
+    };
+  </script>
+</body>
+</html>
