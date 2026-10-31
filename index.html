@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>SPCCPS P6 AI × Swift Vibe Coding · 瀏覽器示範</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #151c2c;
+      --text: #f5f7fb;
+      --muted: #a7b0c2;
+      --line: rgba(255, 255, 255, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "PingFang HK", "PingFang TC", "Noto Sans CJK TC", "Noto Sans TC", "Microsoft JhengHei", "Heiti TC", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    main { width: min(880px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 64px; }
+    .eyebrow { color: var(--muted); font-weight: 700; letter-spacing: 0.04em; font-size: 13px; }
+    h1 { font-size: clamp(32px, 5vw, 48px); letter-spacing: -0.04em; margin: 8px 0 0; line-height: 1.1; }
+    .lead { color: var(--muted); font-size: 17px; line-height: 1.6; max-width: 62ch; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 28px; }
+    a.card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-decoration: none;
+      color: inherit;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 148px;
+    }
+    a.card:hover { border-color: rgba(255, 255, 255, 0.2); }
+    .num { color: #8eb4ff; font-size: 13px; font-weight: 800; }
+    a.card strong { font-size: 22px; letter-spacing: -0.03em; }
+    a.card span { color: var(--muted); line-height: 1.45; font-size: 14px; }
+    .note { margin-top: 22px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+    code { color: #d7e4ff; }
+    :focus-visible { outline: 2px solid #8eb4ff; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">SPCCPS · 小六 · AI × Swift</p>
+    <h1>Vibe Coding 瀏覽器示範</h1>
+    <p class="lead">SwiftUI 不能在瀏覽器裡執行。這五課是課堂 App 完成品的網頁版，雙擊就能打開，不用安裝，也不用建置。</p>
+    <div class="grid">
+      <a class="card" href="SPCCPS_P6_L1_2048_demo.html">
+        <span class="num">第一課</span>
+        <strong>2048</strong>
+        <span>滑動或方向鍵合併方塊，有分數和新遊戲。海洋配色。</span>
+      </a>
+      <a class="card" href="SPCCPS_P6_L2_Calculator_demo.html">
+        <span class="num">第二課</span>
+        <strong>計算機</strong>
+        <span>輸入 → 處理 → 輸出。先乘除，後加減。不能除以 0。</span>
+      </a>
+      <a class="card" href="SPCCPS_P6_L3_KMB_demo.html">
+        <span class="num">第三課</span>
+        <strong>九巴到站</strong>
+        <span>選路線、方向、車站，看還有幾分鐘。示範 JSON，不是實時九巴。</span>
+      </a>
+      <a class="card" href="SPCCPS_P6_L4_StudyPlanner_demo.html">
+        <span class="num">第四課</span>
+        <strong>學習計劃</strong>
+        <span>功課、時間表、25 分鐘專注。重新整理後仍然記得。</span>
+      </a>
+      <a class="card" href="SPCCPS_P6_L5_PlantID_demo.html">
+        <span class="num">第五課</span>
+        <strong>植物辨識</strong>
+        <span>揀相後顯示名稱、信心度和 Google 搜尋。示範模型，不是 Create ML。</span>
+      </a>
+    </div>
+    <p class="note">上傳 Google Drive 可用根目錄的單檔：<code>SPCCPS_P6_L1_2048_demo.html</code>、<code>SPCCPS_P6_L2_Calculator_demo.html</code>、<code>SPCCPS_P6_L3_KMB_demo.html</code>、<code>SPCCPS_P6_L4_StudyPlanner_demo.html</code>、<code>SPCCPS_P6_L5_PlantID_demo.html</code>。每個檔案都是完整的一課。</p>
+  </main>
+</body>
+</html>

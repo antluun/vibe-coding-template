@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#c8102e">
+  <title>九巴到站 · SPCCPS P6 第三課（示範）</title>
+  <style>
+    :root {
+      --red: #c8102e;
+      --red-dark: #8e0b20;
+      --bg: #f6f3f4;
+      --card: #ffffff;
+      --text: #1c1c1e;
+      --muted: #6e6e73;
+      --line: rgba(0, 0, 0, 0.08);
+      --soon: #c8102e;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      padding: 24px 16px;
+      display: grid;
+      place-items: center;
+      background: #2a1218;
+      color: var(--text);
+      font-family: "PingFang HK", "PingFang TC", "Noto Sans CJK TC", "Noto Sans TC", "Microsoft JhengHei", "Heiti TC", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font-family: inherit; font-size: 16px; }
+    button { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+    h1, h2, p { margin: 0; }
+
+    .app {
+      width: min(420px, 100%);
+      height: min(880px, calc(100dvh - 48px));
+      background: var(--bg);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    }
+
+    header {
+      flex: none;
+      background: var(--red);
+      color: white;
+      padding: calc(14px + env(safe-area-inset-top)) 14px 14px;
+    }
+
+    .head-row { display: flex; align-items: center; gap: 8px; }
+    .titles { flex: 1; min-width: 0; }
+    .eyebrow { font-size: 12px; font-weight: 700; opacity: 0.85; }
+    h1 { font-size: 28px; letter-spacing: -0.03em; line-height: 1.15; display: flex; align-items: center; gap: 8px; }
+    .bus { width: 28px; height: 28px; flex: none; }
+
+    #back {
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.16);
+      color: white;
+      font-size: 20px;
+    }
+
+    .mock-banner {
+      margin-top: 10px;
+      background: #fff4f4;
+      color: var(--red-dark);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: 750;
+      line-height: 1.4;
+    }
+
+    main {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 12px 14px 18px;
+    }
+
+    .search {
+      width: 100%;
+      border: 0;
+      background: white;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+
+    .card, .stop, .dir, .route, .eta-row {
+      background: var(--card);
+      border-radius: 14px;
+    }
+
+    .route, .dir, .stop {
+      width: 100%;
+      border: 0;
+      text-align: left;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+      color: inherit;
+    }
+
+    .badge {
+      flex: none;
+      min-width: 58px;
+      height: 42px;
+      padding: 0 8px;
+      border-radius: 10px;
+      background: var(--red);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .route b, .dir b, .stop b { display: block; font-size: 17px; }
+    .route small, .dir small, .stop small, .meta { color: var(--muted); font-size: 13px; }
+    .grow { flex: 1; min-width: 0; }
+    .chev { color: #c7c7cc; font-size: 22px; }
+
+    .fav {
+      border: 0;
+      background: #fff;
+      color: var(--red);
+      border-radius: 999px;
+      min-height: 36px;
+      padding: 0 10px;
+      font-weight: 750;
+    }
+
+    .fav[aria-pressed="true"] { background: var(--red); color: white; }
+
+    .section-label {
+      margin: 4px 2px 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .eta-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .eta-head h2 { font-size: 22px; letter-spacing: -0.03em; }
+    .dest { color: var(--red); font-weight: 800; }
+
+    .tools { display: flex; gap: 8px; margin-bottom: 10px; }
+    .tools button, .json-toggle {
+      border: 0;
+      background: white;
+      border-radius: 12px;
+      min-height: 42px;
+      padding: 0 12px;
+      font-weight: 750;
+    }
+
+    #refresh { background: var(--red); color: white; }
+
+    .status-line { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+
+    .eta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px;
+      margin-bottom: 8px;
+    }
+
+    .eta-min { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; }
+    .eta-row.is-soon .eta-min { color: var(--soon); }
+    .rmk { color: var(--muted); font-size: 13px; margin-top: 2px; }
+    .clock { color: var(--muted); font-size: 13px; }
+
+    .empty {
+      background: white;
+      border-radius: 14px;
+      padding: 22px 16px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .empty b { display: block; font-size: 18px; margin-bottom: 4px; }
+
+    .rail {
+      display: flex;
+      gap: 6px;
+      overflow: auto;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+
+    .rail span {
+      flex: none;
+      background: white;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .rail span.is-here { background: var(--red); color: white; font-weight: 750; }
+
+    pre {
+      margin: 8px 0 0;
+      background: #1c1c1e;
+      color: #f2f2f7;
+      border-radius: 12px;
+      padding: 12px;
+      overflow: auto;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .source {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    :focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+    @media (max-width: 560px) {
+      body { display: block; padding: 0; background: var(--bg); }
+      .app {
+        width: 100%;
+        height: 100dvh;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="head-row">
+        <button type="button" id="back" hidden aria-label="返回">←</button>
+        <div class="titles">
+          <p class="eyebrow">小六 · 第三課</p>
+          <h1>
+            <svg class="bus" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"></rect>
+              <path d="M3 10h18M7 17v2M17 17v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+              <circle cx="8" cy="14" r="0.8" fill="currentColor"></circle>
+              <circle cx="16" cy="14" r="0.8" fill="currentColor"></circle>
+            </svg>
+            九巴到站
+          </h1>
+        </div>
+      </div>
+      <p class="mock-banner" id="banner">示範數據 · 不是實時九巴</p>
+    </header>
+    <main id="main"></main>
+  </div>
+  <noscript><p>請啟用 JavaScript 以查看九巴到站示範。</p></noscript>
+  <script>
+    var FAV_KEY = "spccps-p6-l3-kmb-fav";
+    var REFRESH_MS = 30000;
+    var sessionStart = Date.now();
+    var lastUpdated = sessionStart;
+    var nextRefreshAt = sessionStart + REFRESH_MS;
+
+    var ROUTES = [
+      {
+        route: "1A",
+        directions: [
+          {
+            dest_tc: "中秀茂坪",
+            dest_en: "SAU MAU PING (CENTRAL)",
+            stops: [
+              { name: "尖沙咀碼頭", buses: [{ min: 3, rmk_tc: "" }, { min: 11, rmk_tc: "" }, { min: 19, rmk_tc: "原定班次" }] },
+              { name: "油麻地", buses: [{ min: 2, rmk_tc: "" }, { min: 14, rmk_tc: "" }] },
+              { name: "旺角站", buses: [{ min: 0, rmk_tc: "" }, { min: 9, rmk_tc: "" }] },
+              { name: "深水埗欽州街", buses: [{ min: 6, rmk_tc: "" }, { min: 16, rmk_tc: "原定班次" }] },
+              { name: "美孚", buses: [{ min: 8, rmk_tc: "" }] },
+              { name: "中秀茂坪總站", buses: [] }
+            ]
+          },
+          {
+            dest_tc: "尖沙咀碼頭",
+            dest_en: "STAR FERRY",
+            stops: [
+              { name: "中秀茂坪總站", buses: [{ min: 5, rmk_tc: "" }, { min: 15, rmk_tc: "原定班次" }] },
+              { name: "秀茂坪道", buses: [{ min: 1, rmk_tc: "" }, { min: 12, rmk_tc: "" }] },
+              { name: "彩虹站", buses: [{ min: 7, rmk_tc: "" }, { min: 18, rmk_tc: "" }] },
+              { name: "新蒲崗", buses: [{ min: 4, rmk_tc: "" }] },
+              { name: "油麻地", buses: [{ min: 2, rmk_tc: "" }, { min: 13, rmk_tc: "" }] },
+              { name: "尖沙咀碼頭總站", buses: [] }
+            ]
+          }
+        ]
+      },
+      {
+        route: "1",
+        directions: [
+          {
+            dest_tc: "尖沙咀碼頭",
+            dest_en: "STAR FERRY",
+            stops: [
+              { name: "竹園邨", buses: [{ min: 4, rmk_tc: "" }, { min: 16, rmk_tc: "" }] },
+              { name: "黃大仙站", buses: [{ min: 2, rmk_tc: "" }, { min: 13, rmk_tc: "原定班次" }] },
+              { name: "九龍城", buses: [{ min: 8, rmk_tc: "" }] },
+              { name: "紅磡站", buses: [{ min: 6, rmk_tc: "" }, { min: 19, rmk_tc: "" }] },
+              { name: "尖沙咀碼頭總站", buses: [] }
+            ]
+          },
+          {
+            dest_tc: "竹園邨",
+            dest_en: "CHUK YUEN ESTATE",
+            stops: [
+              { name: "尖沙咀碼頭", buses: [{ min: 3, rmk_tc: "" }, { min: 12, rmk_tc: "" }] },
+              { name: "紅磡站", buses: [{ min: 7, rmk_tc: "" }] },
+              { name: "九龍城", buses: [{ min: 1, rmk_tc: "" }, { min: 11, rmk_tc: "" }] },
+              { name: "黃大仙站", buses: [{ min: 9, rmk_tc: "原定班次" }] },
+              { name: "竹園邨總站", buses: [] }
+            ]
+          }
+        ]
+      },
+      {
+        route: "6",
+        directions: [
+          {
+            dest_tc: "尖沙咀碼頭",
+            dest_en: "STAR FERRY",
+            stops: [
+              { name: "荔枝角", buses: [{ min: 5, rmk_tc: "" }, { min: 14, rmk_tc: "" }] },
+              { name: "深水埗", buses: [{ min: 2, rmk_tc: "" }] },
+              { name: "太子站", buses: [{ min: 8, rmk_tc: "原定班次" }] },
+              { name: "旺角", buses: [{ min: 6, rmk_tc: "" }, { min: 17, rmk_tc: "" }] },
+              { name: "尖沙咀碼頭總站", buses: [] }
+            ]
+          },
+          {
+            dest_tc: "荔枝角",
+            dest_en: "LAI CHI KOK",
+            stops: [
+              { name: "尖沙咀碼頭", buses: [{ min: 4, rmk_tc: "" }, { min: 13, rmk_tc: "" }] },
+              { name: "油麻地", buses: [{ min: 1, rmk_tc: "" }] },
+              { name: "旺角", buses: [{ min: 9, rmk_tc: "" }] },
+              { name: "深水埗", buses: [{ min: 7, rmk_tc: "原定班次" }, { min: 18, rmk_tc: "" }] },
+              { name: "荔枝角總站", buses: [] }
+            ]
+          }
+        ]
+      },
+      {
+        route: "11",
+        directions: [
+          {
+            dest_tc: "九龍站",
+            dest_en: "KOWLOON STATION",
+            stops: [
+              { name: "鑽石山站", buses: [{ min: 6, rmk_tc: "" }, { min: 15, rmk_tc: "" }] },
+              { name: "新蒲崗", buses: [{ min: 3, rmk_tc: "" }] },
+              { name: "九龍城", buses: [{ min: 10, rmk_tc: "原定班次" }] },
+              { name: "紅磡站", buses: [{ min: 2, rmk_tc: "" }, { min: 12, rmk_tc: "" }] },
+              { name: "九龍站總站", buses: [] }
+            ]
+          },
+          {
+            dest_tc: "鑽石山站",
+            dest_en: "DIAMOND HILL STATION",
+            stops: [
+              { name: "九龍站", buses: [{ min: 4, rmk_tc: "" }, { min: 16, rmk_tc: "" }] },
+              { name: "尖沙咀", buses: [{ min: 8, rmk_tc: "" }] },
+              { name: "紅磡站", buses: [{ min: 1, rmk_tc: "" }] },
+              { name: "九龍城", buses: [{ min: 7, rmk_tc: "原定班次" }] },
+              { name: "鑽石山站總站", buses: [] }
+            ]
+          }
+        ]
+      },
+      {
+        route: "960",
+        directions: [
+          {
+            dest_tc: "會展站",
+            dest_en: "EXHIBITION CENTRE STATION",
+            stops: [
+              { name: "建生", buses: [{ min: 8, rmk_tc: "" }, { min: 20, rmk_tc: "原定班次" }] },
+              { name: "屯門市中心", buses: [{ min: 5, rmk_tc: "" }] },
+              { name: "屯門公路轉車站", buses: [{ min: 2, rmk_tc: "" }, { min: 14, rmk_tc: "" }] },
+              { name: "西區海底隧道收費廣場", buses: [{ min: 11, rmk_tc: "" }] },
+              { name: "中環", buses: [{ min: 7, rmk_tc: "" }] },
+              { name: "會展站總站", buses: [] }
+            ]
+          },
+          {
+            dest_tc: "建生",
+            dest_en: "KIN SANG",
+            stops: [
+              { name: "會展站", buses: [{ min: 6, rmk_tc: "" }, { min: 18, rmk_tc: "" }] },
+              { name: "金鐘", buses: [{ min: 3, rmk_tc: "" }] },
+              { name: "上環", buses: [{ min: 9, rmk_tc: "原定班次" }] },
+              { name: "西區海底隧道收費廣場", buses: [{ min: 4, rmk_tc: "" }] },
+              { name: "屯門市中心", buses: [{ min: 12, rmk_tc: "" }] },
+              { name: "建生總站", buses: [] }
+            ]
+          }
+        ]
+      }
+    ];
+
+    var ui = { screen: "routes", query: "", route: 0, dir: 0, stop: 0, jsonOpen: false };
+    var fav = null;
+
+    function loadFav() {
+      try {
+        var raw = JSON.parse(localStorage.getItem(FAV_KEY) || "null");
+        if (raw && typeof raw.route === "string" && typeof raw.dest_tc === "string") fav = raw;
+      } catch (err) {}
+    }
+
+    function saveFav() {
+      try {
+        if (fav) localStorage.setItem(FAV_KEY, JSON.stringify(fav));
+        else localStorage.removeItem(FAV_KEY);
+      } catch (err) {}
+    }
+
+    function isFav(route, dest) {
+      return !!(fav && fav.route === route && fav.dest_tc === dest);
+    }
+
+    function toggleFav(route, dest) {
+      if (isFav(route, dest)) fav = null;
+      else fav = { route: route, dest_tc: dest };
+      saveFav();
+      paint();
+    }
+
+    function hkParts(date) {
+      var parts = new Intl.DateTimeFormat("en-HK", {
+        timeZone: "Asia/Hong_Kong",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hourCycle: "h23"
+      }).formatToParts(date);
+      var out = {};
+      parts.forEach(function (part) { out[part.type] = part.value; });
+      return out;
+    }
+
+    function hkISO(date) {
+      var p = hkParts(date);
+      return p.year + "-" + p.month + "-" + p.day + "T" + p.hour + ":" + p.minute + ":" + p.second + "+08:00";
+    }
+
+    function hkClock(date) {
+      var p = hkParts(date);
+      return p.hour + ":" + p.minute + ":" + p.second;
+    }
+
+    function hkHM(date) {
+      var p = hkParts(date);
+      return p.hour + ":" + p.minute;
+    }
+
+    function etaDate(min) {
+      return new Date(sessionStart + min * 60000);
+    }
+
+    function describeEta(etaMs, nowMs) {
+      var diffMin = (etaMs - nowMs) / 60000;
+      if (diffMin < -1) return null;
+      var rounded = Math.round(diffMin);
+      if (rounded <= 0) return { text: "即將到站", soon: true };
+      return { text: rounded + " 分鐘", soon: rounded < 3 };
+    }
+
+    function currentRoute() { return ROUTES[ui.route]; }
+    function currentDir() { return currentRoute().directions[ui.dir]; }
+    function currentStop() { return currentDir().stops[ui.stop]; }
+
+    function visibleBuses(stop, nowMs) {
+      return stop.buses.map(function (bus) {
+        var at = etaDate(bus.min);
+        var info = describeEta(at.getTime(), nowMs);
+        if (!info) return null;
+        return { at: at, info: info, rmk_tc: bus.rmk_tc };
+      }).filter(Boolean);
+    }
+
+    function el(tag, attrs, children) {
+      var node = document.createElement(tag);
+      if (attrs) {
+        Object.keys(attrs).forEach(function (key) {
+          var value = attrs[key];
+          if (value == null || value === false) return;
+          if (key === "class") node.className = value;
+          else if (key === "text") node.textContent = value;
+          else node.setAttribute(key, value === true ? "" : String(value));
+        });
+      }
+      (children || []).forEach(function (child) {
+        if (child == null || child === false) return;
+        node.appendChild(typeof child === "string" ? document.createTextNode(child) : child);
+      });
+      return node;
+    }
+
+    function clear(node) {
+      while (node.firstChild) node.removeChild(node.firstChild);
+    }
+
+    function paintChrome() {
+      document.getElementById("back").hidden = ui.screen === "routes";
+    }
+
+    function paintRoutes() {
+      var main = document.getElementById("main");
+      clear(main);
+      var search = el("input", {
+        class: "search",
+        id: "search",
+        type: "search",
+        placeholder: "輸入路線，例如 1A",
+        value: ui.query,
+        "aria-label": "搜尋路線"
+      });
+      main.appendChild(search);
+      var q = ui.query.trim().toUpperCase();
+      var favBlob = fav ? (fav.route + " " + fav.dest_tc).toUpperCase() : "";
+      var favMatches = !!(fav && (!q || favBlob.indexOf(q) !== -1));
+      if (favMatches) {
+        main.appendChild(el("p", { class: "section-label", text: "最愛路線" }));
+        main.appendChild(el("button", {
+          type: "button",
+          class: "route",
+          id: "open-fav"
+        }, [
+          el("span", { class: "badge", text: fav.route }),
+          el("span", { class: "grow" }, [
+            el("b", { text: "往" + fav.dest_tc }),
+            el("small", { text: "已儲存在這部裝置" })
+          ]),
+          el("span", { class: "chev", text: "›" })
+        ]));
+      }
+      main.appendChild(el("p", { class: "section-label", text: "示範路線" }));
+      var any = false;
+      ROUTES.forEach(function (route, index) {
+        var blob = route.route + " " + route.directions.map(function (dir) { return dir.dest_tc; }).join(" ");
+        if (q && blob.toUpperCase().indexOf(q) === -1 && route.route.indexOf(q) === -1) return;
+        any = true;
+        main.appendChild(el("button", {
+          type: "button",
+          class: "route",
+          "data-route-index": String(index)
+        }, [
+          el("span", { class: "badge", text: route.route }),
+          el("span", { class: "grow" }, [
+            el("b", { text: route.directions[0].dest_tc + " ↔ " + route.directions[1].dest_tc }),
+            el("small", { text: "兩個方向" })
+          ]),
+          el("span", { class: "chev", text: "›" })
+        ]));
+      });
+      if (!any) {
+        main.appendChild(el("div", { class: "empty" }, [
+          el("b", { text: "找不到這條路線" }),
+          el("p", { text: "示範資料只有 1、1A、6、11、960。" })
+        ]));
+      }
+      main.appendChild(sourceNote());
+      search.focus();
+      var pos = search.value.length;
+      search.setSelectionRange(pos, pos);
+    }
+
+    function paintDirections() {
+      var main = document.getElementById("main");
+      clear(main);
+      var route = currentRoute();
+      main.appendChild(el("p", { class: "section-label", text: "選擇方向 · 路線 " + route.route }));
+      route.directions.forEach(function (dir, index) {
+        main.appendChild(el("button", {
+          type: "button",
+          class: "dir",
+          "data-dir-index": String(index)
+        }, [
+          el("span", { class: "badge", text: route.route }),
+          el("span", { class: "grow" }, [
+            el("b", { text: "往" + dir.dest_tc }),
+            el("small", { text: dir.dest_en })
+          ]),
+          el("span", { class: "chev", text: "›" })
+        ]));
+      });
+      main.appendChild(el("p", { class: "source", text: "畫面用目的地的中文（dest_tc）。英文 dest_en 只放在小字，避免把 SAU MAU PING 當成顯示名稱。" }));
+      main.appendChild(sourceNote());
+    }
+
+    function paintStops() {
+      var main = document.getElementById("main");
+      clear(main);
+      var route = currentRoute();
+      var dir = currentDir();
+      var head = el("div", { class: "eta-head" }, [
+        el("div", {}, [
+          el("p", { class: "section-label", text: "選擇車站" }),
+          el("h2", {}, [
+            document.createTextNode(route.route + " "),
+            el("span", { class: "dest", text: "往" + dir.dest_tc })
+          ])
+        ]),
+        el("button", {
+          type: "button",
+          class: "fav",
+          id: "fav-btn",
+          "aria-pressed": isFav(route.route, dir.dest_tc) ? "true" : "false",
+          text: isFav(route.route, dir.dest_tc) ? "已加最愛" : "加最愛"
+        })
+      ]);
+      main.appendChild(head);
+      dir.stops.forEach(function (stop, index) {
+        var count = visibleBuses(stop, Date.now()).length;
+        main.appendChild(el("button", {
+          type: "button",
+          class: "stop",
+          "data-stop-index": String(index)
+        }, [
+          el("span", { class: "grow" }, [
+            el("b", { text: stop.name }),
+            el("small", { text: count ? count + " 班示範班次" : "暫時沒有班次" })
+          ]),
+          el("span", { class: "chev", text: "›" })
+        ]));
+      });
+      main.appendChild(sourceNote());
+    }
+
+    function mockJson(route, dir, stop, nowMs) {
+      var buses = visibleBuses(stop, nowMs);
+      if (!buses.length) {
+        return [{
+          route: route.route,
+          dest_tc: dir.dest_tc,
+          dest_en: dir.dest_en,
+          eta: null,
+          rmk_tc: ""
+        }];
+      }
+      return buses.map(function (bus) {
+        return {
+          route: route.route,
+          dest_tc: dir.dest_tc,
+          dest_en: dir.dest_en,
+          eta: hkISO(bus.at),
+          rmk_tc: bus.rmk_tc
+        };
+      });
+    }
+
+    function paintEta() {
+      var main = document.getElementById("main");
+      var scroll = main.scrollTop;
+      clear(main);
+      var now = Date.now();
+      var route = currentRoute();
+      var dir = currentDir();
+      var stop = currentStop();
+      var buses = visibleBuses(stop, now);
+      main.appendChild(el("div", { class: "eta-head" }, [
+        el("div", {}, [
+          el("h2", {}, [
+            document.createTextNode(route.route + " "),
+            el("span", { class: "dest", text: "往" + dir.dest_tc })
+          ]),
+          el("p", { class: "meta", text: stop.name })
+        ]),
+        el("button", {
+          type: "button",
+          class: "fav",
+          id: "fav-btn",
+          "aria-pressed": isFav(route.route, dir.dest_tc) ? "true" : "false",
+          text: isFav(route.route, dir.dest_tc) ? "已加最愛" : "加最愛"
+        })
+      ]));
+      var rail = el("div", { class: "rail", "aria-label": "路線示意，不是地圖" });
+      dir.stops.forEach(function (item, index) {
+        rail.appendChild(el("span", {
+          class: index === ui.stop ? "is-here" : "",
+          text: item.name
+        }));
+      });
+      main.appendChild(rail);
+      main.appendChild(el("p", { class: "meta", text: "路線示意（示範，不是地圖）" }));
+      var tools = el("div", { class: "tools" });
+      tools.appendChild(el("button", { type: "button", id: "refresh", text: "更新" }));
+      tools.appendChild(el("button", { type: "button", id: "json-toggle", text: ui.jsonOpen ? "收起 JSON" : "查看 JSON" }));
+      main.appendChild(tools);
+      var left = Math.max(0, Math.ceil((nextRefreshAt - now) / 1000));
+      main.appendChild(el("p", { class: "status-line", id: "refresh-note", text: "每 30 秒更新 · " + left + " 秒" }));
+      main.appendChild(el("p", { class: "status-line", id: "updated-at", text: "最後更新 " + hkClock(new Date(lastUpdated)) }));
+      if (!buses.length) {
+        main.appendChild(el("div", { class: "empty", id: "no-service" }, [
+          el("b", { text: "暫時沒有班次" }),
+          el("p", { text: "eta 是空的（null）。這不是閃退，也不是空白頁。" })
+        ]));
+      } else {
+        var list = el("div", { id: "eta-list" });
+        buses.forEach(function (bus) {
+          list.appendChild(el("article", {
+            class: "eta-row" + (bus.info.soon ? " is-soon" : ""),
+            "data-eta": String(bus.at.getTime())
+          }, [
+            el("div", {}, [
+              el("div", { class: "eta-min", text: bus.info.text }),
+              bus.rmk_tc ? el("div", { class: "rmk", text: bus.rmk_tc }) : null
+            ]),
+            el("div", { class: "clock", text: "預計 " + hkHM(bus.at) })
+          ]));
+        });
+        main.appendChild(list);
+      }
+      if (ui.jsonOpen) {
+        var pre = el("pre", { id: "json-view", text: JSON.stringify(mockJson(route, dir, stop, now), null, 2) });
+        main.appendChild(pre);
+        main.appendChild(el("p", { class: "source", text: "App 讀 eta（日期 + 時間），再計成「還有多少分鐘」。快過 1 分鐘就顯示即將到站，不顯示負數。" }));
+      }
+      main.appendChild(sourceNote());
+      main.scrollTop = scroll;
+    }
+
+    function sourceNote() {
+      return el("p", {
+        class: "source",
+        text: "資料來源：課堂示範 JSON（模擬），寫死在這個網頁裡。此頁不會連上 data.etabus.gov.hk，也沒有任何密碼。正式課堂 App 才使用官方九巴 API。車站和班次方便練習「選路線 → 選方向 → 選車站」，不是完整路線表。"
+      });
+    }
+
+    function paint() {
+      paintChrome();
+      if (ui.screen === "routes") paintRoutes();
+      else if (ui.screen === "directions") paintDirections();
+      else if (ui.screen === "stops") paintStops();
+      else paintEta();
+    }
+
+    function openFav() {
+      if (!fav) return;
+      for (var i = 0; i < ROUTES.length; i++) {
+        if (ROUTES[i].route !== fav.route) continue;
+        for (var d = 0; d < ROUTES[i].directions.length; d++) {
+          if (ROUTES[i].directions[d].dest_tc === fav.dest_tc) {
+            ui.route = i;
+            ui.dir = d;
+            ui.screen = "stops";
+            paint();
+            return;
+          }
+        }
+      }
+    }
+
+    function manualRefresh() {
+      lastUpdated = Date.now();
+      nextRefreshAt = lastUpdated + REFRESH_MS;
+      paint();
+    }
+
+    function tick() {
+      var now = Date.now();
+      if (now >= nextRefreshAt) {
+        lastUpdated = now;
+        nextRefreshAt = now + REFRESH_MS;
+        if (ui.screen === "eta") {
+          paint();
+          return;
+        }
+      }
+      if (ui.screen !== "eta") return;
+      var note = document.getElementById("refresh-note");
+      if (note) {
+        var left = Math.max(0, Math.ceil((nextRefreshAt - now) / 1000));
+        note.textContent = "每 30 秒更新 · " + left + " 秒";
+      }
+      var rows = document.querySelectorAll(".eta-row");
+      var expired = false;
+      rows.forEach(function (row) {
+        var info = describeEta(Number(row.dataset.eta), now);
+        if (!info) {
+          expired = true;
+          return;
+        }
+        var label = row.querySelector(".eta-min");
+        if (label.textContent !== info.text) label.textContent = info.text;
+        row.classList.toggle("is-soon", info.soon);
+      });
+      if (expired) paint();
+    }
+
+    function bind() {
+      document.getElementById("back").addEventListener("click", function () {
+        if (ui.screen === "eta") ui.screen = "stops";
+        else if (ui.screen === "stops") ui.screen = "directions";
+        else ui.screen = "routes";
+        ui.jsonOpen = false;
+        paint();
+      });
+
+      document.getElementById("main").addEventListener("click", function (event) {
+        var routeBtn = event.target.closest("[data-route-index]");
+        if (routeBtn) {
+          ui.route = Number(routeBtn.dataset.routeIndex);
+          ui.screen = "directions";
+          paint();
+          return;
+        }
+        var dirBtn = event.target.closest("[data-dir-index]");
+        if (dirBtn) {
+          ui.dir = Number(dirBtn.dataset.dirIndex);
+          ui.screen = "stops";
+          paint();
+          return;
+        }
+        var stopBtn = event.target.closest("[data-stop-index]");
+        if (stopBtn) {
+          ui.stop = Number(stopBtn.dataset.stopIndex);
+          ui.screen = "eta";
+          ui.jsonOpen = false;
+          lastUpdated = Date.now();
+          nextRefreshAt = lastUpdated + REFRESH_MS;
+          paint();
+          return;
+        }
+        if (event.target.id === "open-fav") openFav();
+        if (event.target.id === "fav-btn") toggleFav(currentRoute().route, currentDir().dest_tc);
+        if (event.target.id === "refresh") manualRefresh();
+        if (event.target.id === "json-toggle") {
+          ui.jsonOpen = !ui.jsonOpen;
+          paint();
+        }
+      });
+
+      document.getElementById("main").addEventListener("input", function (event) {
+        if (event.target.id !== "search") return;
+        ui.query = event.target.value;
+        paint();
+      });
+    }
+
+    loadFav();
+    bind();
+    paint();
+    setInterval(tick, 1000);
+
+    window.__demo = {
+      routes: ROUTES,
+      describeEta: describeEta,
+      openRoute: function (routeNo, dirIndex, stopIndex) {
+        ui.route = ROUTES.findIndex(function (item) { return item.route === routeNo; });
+        ui.dir = dirIndex || 0;
+        ui.stop = stopIndex || 0;
+        ui.screen = stopIndex == null ? "stops" : "eta";
+        if (ui.screen === "eta") {
+          lastUpdated = Date.now();
+          nextRefreshAt = lastUpdated + REFRESH_MS;
+        }
+        paint();
+      },
+      screenText: function () { return document.getElementById("main").innerText; }
+    };
+  </script>
+</body>
+</html>

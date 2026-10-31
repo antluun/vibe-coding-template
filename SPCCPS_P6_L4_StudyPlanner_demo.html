@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#000000">
+  <title>學習計劃</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --card: #1c1c1e;
+      --elev: #2c2c2e;
+      --text: #ffffff;
+      --muted: #8e8e93;
+      --line: rgba(255, 255, 255, 0.12);
+      --blue: #0a84ff;
+      --green: #30d158;
+      --red: #ff453a;
+      --chi: #ff7a59;
+      --eng: #5aa2ff;
+      --math: #3ddc97;
+      --gs: #ffc14d;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    html { color-scheme: dark; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      padding: 24px 16px;
+      display: grid;
+      place-items: center;
+      background: #0b1220;
+      color: var(--text);
+      font-family: "PingFang HK", "PingFang TC", "Noto Sans CJK TC", "Noto Sans TC", "Microsoft JhengHei", "Heiti TC", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font-family: inherit; font-size: 16px; }
+    button { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+    h1, h2, p { margin: 0; }
+
+    .app {
+      width: min(420px, 100%);
+      height: min(880px, calc(100dvh - 48px));
+      background: var(--bg);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    }
+
+    .app.is-modal main { overflow: hidden; }
+
+    header {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: calc(18px + env(safe-area-inset-top)) 16px 12px;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    h1 {
+      font-size: 34px;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+    }
+
+    #screen-sub {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    #screen-sub.is-alert { color: var(--red); }
+
+    #add-btn {
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      flex: none;
+    }
+
+    #add-btn svg { width: 22px; height: 22px; }
+
+    main {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      overscroll-behavior: contain;
+    }
+
+    .panel { min-height: 100%; }
+
+    .sort-hint {
+      margin: 0 20px 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .list {
+      margin: 0 16px 20px;
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .card {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 8px 6px 4px;
+    }
+
+    .card + .card { box-shadow: inset 0 0.5px 0 #38383a; }
+
+    .card.overdue { background: rgba(255, 69, 58, 0.1); }
+
+    .check {
+      width: 44px;
+      height: 44px;
+      border: 0;
+      background: transparent;
+      display: grid;
+      place-items: center;
+      flex: none;
+      color: inherit;
+    }
+
+    .box {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid var(--muted);
+      display: grid;
+      place-items: center;
+    }
+
+    .tick { width: 16px; height: 16px; opacity: 0; }
+    .check[aria-pressed="true"] .tick { opacity: 1; }
+    .check[aria-pressed="true"] .box { background: var(--green); border-color: var(--green); }
+    .card.overdue .box { border-color: var(--red); }
+
+    .open {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      padding: 8px 4px 8px 0;
+    }
+
+    .open-text { flex: 1; min-width: 0; }
+
+    .hw-title {
+      display: block;
+      font-size: 17px;
+      font-weight: 650;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .card.overdue .hw-title,
+    .card.overdue .hw-due { color: var(--red); }
+
+    .card.done .hw-title {
+      color: rgba(255, 255, 255, 0.45);
+      text-decoration: line-through;
+    }
+
+    .card.done .hw-due { color: var(--muted); }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .tag, .slot, .chip, .choice {
+      font-weight: 650;
+    }
+
+    .tag {
+      font-size: 12px;
+      line-height: 1.4;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .hw-due { font-size: 13px; color: var(--muted); }
+
+    .chevron { width: 18px; height: 18px; color: var(--muted); flex: none; }
+
+    .empty {
+      margin: 48px 28px;
+      text-align: center;
+    }
+
+    .empty-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .empty p + p { color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+    .tt { padding: 0 12px 20px; }
+
+    .tt-head, .tt-row {
+      display: grid;
+      grid-template-columns: 68px repeat(5, minmax(0, 1fr));
+      gap: 4px;
+      align-items: stretch;
+    }
+
+    .tt-head {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #000;
+      padding-bottom: 6px;
+    }
+
+    .day-h, .corner {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 4px 0 6px;
+    }
+
+    .day-h.is-today { color: var(--blue); }
+
+    .day-h.is-today::after {
+      content: "";
+      display: block;
+      width: 4px;
+      height: 4px;
+      margin: 3px auto 0;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    .period {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 48px;
+      line-height: 1.25;
+    }
+
+    .period b { font-size: 12px; font-weight: 650; }
+    .period small { color: var(--muted); font-size: 10px; }
+
+    .slot {
+      border: 0;
+      border-radius: 8px;
+      min-height: 48px;
+      padding: 4px 2px;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .slot.is-today { box-shadow: inset 0 2px 0 var(--blue); }
+
+    .break-row {
+      margin: 2px 0;
+      padding: 7px 8px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    #panel-focus {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: safe center;
+      gap: 18px;
+      padding: 12px 20px 28px;
+    }
+
+    .timer {
+      position: relative;
+      width: min(280px, 86%);
+      aspect-ratio: 1;
+    }
+
+    .timer svg { width: 100%; height: 100%; display: block; }
+
+    .ring-track, .ring-value {
+      fill: none;
+      stroke-width: 8;
+    }
+
+    .ring-track { stroke: var(--elev); }
+
+    .ring-value {
+      stroke: var(--blue);
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: 120px 120px;
+    }
+
+    #panel-focus.is-break .ring-value { stroke: var(--green); }
+
+    .timer-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    #focus-kicker {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--blue);
+    }
+
+    #panel-focus.is-break #focus-kicker { color: var(--green); }
+
+    #focus-clock {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 64px;
+      font-weight: 640;
+      letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    #focus-status { color: var(--muted); font-size: 15px; }
+
+    #focus-note {
+      max-width: 280px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .focus-actions {
+      display: flex;
+      gap: 12px;
+      width: min(280px, 100%);
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 14px;
+      min-height: 48px;
+      padding: 0 16px;
+      font-weight: 650;
+    }
+
+    .btn.primary { background: var(--blue); color: #fff; }
+    #panel-focus.is-break .btn.primary { background: var(--green); color: #05210f; }
+    .btn.secondary { background: var(--elev); color: #fff; }
+    .btn.text { background: transparent; color: var(--blue); width: 100%; }
+    .btn.danger { background: transparent; color: var(--red); width: 100%; }
+    .btn:disabled { opacity: 0.45; cursor: default; }
+
+    .focus-actions .btn { flex: 1; }
+
+    .tabs {
+      flex: none;
+      display: flex;
+      border-top: 0.5px solid var(--line);
+      background: #1c1c1e;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .tab {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 8px 0 8px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .tab svg { width: 24px; height: 24px; }
+    .tab[aria-selected="true"] { color: var(--blue); font-weight: 700; }
+
+    .sheet {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      background: rgba(0, 0, 0, 0.55);
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .sheet-card {
+      width: 100%;
+      max-height: min(92%, 680px);
+      overflow: auto;
+      background: var(--card);
+      border-radius: 16px 16px 0 0;
+      padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+    }
+
+    .handle {
+      width: 36px;
+      height: 5px;
+      border-radius: 3px;
+      background: #3a3a3c;
+      margin: 4px auto 12px;
+    }
+
+    .sheet-card h2 { font-size: 20px; margin-bottom: 14px; }
+    #sub-where { color: var(--muted); margin: -8px 0 14px; font-size: 14px; }
+
+    .field { display: flex; flex-direction: column; gap: 8px; margin: 0 0 14px; border: 0; padding: 0; }
+    .field > span, legend { color: var(--muted); font-size: 13px; padding: 0; }
+
+    .field input[type="text"],
+    .field input[type="date"] {
+      width: 100%;
+      background: var(--elev);
+      color: #fff;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .chips, .sub-choices { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .sub-choices { grid-template-columns: 1fr 1fr; margin-bottom: 8px; }
+
+    .chip, .choice {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 48px;
+      border: 0;
+      border-radius: 12px;
+      font-size: 16px;
+    }
+
+    .chip input {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      opacity: 0;
+    }
+
+    .choice[aria-pressed="true"] { box-shadow: inset 0 0 0 2px #fff; }
+
+    .subj-chi { background: rgba(255, 122, 89, 0.18); color: var(--chi); }
+    .subj-eng { background: rgba(90, 162, 255, 0.18); color: var(--eng); }
+    .subj-math { background: rgba(61, 220, 151, 0.18); color: var(--math); }
+    .subj-gs { background: rgba(255, 193, 77, 0.18); color: var(--gs); }
+
+    .chip:has(input:checked) { color: #1c1c1e; }
+    .subj-chi:has(input:checked), .choice.subj-chi[aria-pressed="true"] { background: var(--chi); color: #2a100c; }
+    .subj-eng:has(input:checked), .choice.subj-eng[aria-pressed="true"] { background: var(--eng); color: #071426; }
+    .subj-math:has(input:checked), .choice.subj-math[aria-pressed="true"] { background: var(--math); color: #062116; }
+    .subj-gs:has(input:checked), .choice.subj-gs[aria-pressed="true"] { background: var(--gs); color: #2a1d04; }
+
+    .form-error { color: var(--red); font-size: 14px; min-height: 0; margin: 0 0 8px; }
+    .sheet-actions { display: flex; flex-direction: column; gap: 4px; }
+    .sheet-actions .btn.primary { width: 100%; }
+
+    :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+    @media (hover: hover) {
+      .slot:hover, #add-btn:hover, .btn.primary:hover { filter: brightness(1.08); }
+    }
+
+    @media (max-width: 560px) {
+      body { display: block; padding: 0; background: #000; }
+      .app {
+        width: 100%;
+        height: 100dvh;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <p class="eyebrow">小六 · 學習計劃</p>
+        <h1 id="screen-title">功課</h1>
+        <p id="screen-sub"></p>
+      </div>
+      <button type="button" id="add-btn" aria-label="新增功課">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
+        </svg>
+      </button>
+    </header>
+
+    <main>
+      <section id="panel-homework" class="panel" role="tabpanel" aria-labelledby="tab-homework"></section>
+      <section id="panel-timetable" class="panel" role="tabpanel" aria-labelledby="tab-timetable" hidden></section>
+      <section id="panel-focus" class="panel" role="tabpanel" aria-labelledby="tab-focus" hidden>
+        <div class="timer">
+          <svg viewBox="0 0 240 240" aria-hidden="true">
+            <circle class="ring-track" cx="120" cy="120" r="100"></circle>
+            <circle id="ring-value" class="ring-value" cx="120" cy="120" r="100"></circle>
+          </svg>
+          <div class="timer-center">
+            <p id="focus-kicker">專注</p>
+            <p id="focus-clock">25:00</p>
+            <p id="focus-status" aria-live="polite">準備開始</p>
+          </div>
+        </div>
+        <div class="focus-actions">
+          <button type="button" id="focus-reset" class="btn secondary">重設</button>
+          <button type="button" id="focus-toggle" class="btn primary" aria-pressed="false">開始</button>
+        </div>
+        <p id="focus-note">按「開始」專注 25 分鐘。到 0:00 會停止，並自動開始 5 分鐘休息。</p>
+      </section>
+    </main>
+
+    <nav class="tabs" role="tablist" aria-label="功能">
+      <button type="button" class="tab" role="tab" id="tab-homework" data-tab="homework" aria-controls="panel-homework" aria-selected="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="5" y="4" width="14" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"></rect>
+          <path d="M8 9h8M8 13h8M8 17h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+        </svg>
+        <span>功課</span>
+      </button>
+      <button type="button" class="tab" role="tab" id="tab-timetable" data-tab="timetable" aria-controls="panel-timetable" aria-selected="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="4" y="5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"></rect>
+          <path d="M4 9.5h16M9 9.5V20M15 9.5V20" fill="none" stroke="currentColor" stroke-width="1.8"></path>
+        </svg>
+        <span>時間表</span>
+      </button>
+      <button type="button" class="tab" role="tab" id="tab-focus" data-tab="focus" aria-controls="panel-focus" aria-selected="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"></circle>
+          <path d="M12 8v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span>專注</span>
+      </button>
+    </nav>
+
+    <div id="hw-sheet" class="sheet" hidden>
+      <form id="hw-form" class="sheet-card" novalidate>
+        <div class="handle"></div>
+        <h2 id="hw-form-title">新增功課</h2>
+        <label class="field">
+          <span>標題</span>
+          <input id="hw-title" name="title" type="text" maxlength="80" placeholder="例如：課文練習" autocomplete="off">
+        </label>
+        <fieldset class="field">
+          <legend>科目</legend>
+          <div class="chips">
+            <label class="chip subj-chi">中文<input type="radio" name="subject" value="chi" checked></label>
+            <label class="chip subj-eng">英文<input type="radio" name="subject" value="eng"></label>
+            <label class="chip subj-math">數學<input type="radio" name="subject" value="math"></label>
+            <label class="chip subj-gs">常識<input type="radio" name="subject" value="gs"></label>
+          </div>
+        </fieldset>
+        <label class="field">
+          <span>截止日期</span>
+          <input id="hw-due" name="due" type="date" required>
+        </label>
+        <p id="hw-error" class="form-error" role="alert" hidden></p>
+        <div class="sheet-actions">
+          <button type="submit" id="hw-submit" class="btn primary">加入</button>
+          <button type="button" id="hw-cancel" class="btn text">取消</button>
+          <button type="button" id="hw-delete" class="btn danger" hidden>刪除功課</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="sub-sheet" class="sheet" hidden>
+      <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="sub-title">
+        <div class="handle"></div>
+        <h2 id="sub-title">選擇科目</h2>
+        <p id="sub-where"></p>
+        <div class="sub-choices" id="sub-choices">
+          <button type="button" class="choice subj-chi" data-subject="chi">中文</button>
+          <button type="button" class="choice subj-eng" data-subject="eng">英文</button>
+          <button type="button" class="choice subj-math" data-subject="math">數學</button>
+          <button type="button" class="choice subj-gs" data-subject="gs">常識</button>
+        </div>
+        <button type="button" id="sub-cancel" class="btn text">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <noscript><p>請啟用 JavaScript 以使用學習計劃。</p></noscript>
+
+  <script>
+    var SUBJECTS = [
+      { id: "chi", label: "中文", className: "subj-chi" },
+      { id: "eng", label: "英文", className: "subj-eng" },
+      { id: "math", label: "數學", className: "subj-math" },
+      { id: "gs", label: "常識", className: "subj-gs" }
+    ];
+
+    var DAYS = [
+      { id: "mon", label: "一", full: "星期一" },
+      { id: "tue", label: "二", full: "星期二" },
+      { id: "wed", label: "三", full: "星期三" },
+      { id: "thu", label: "四", full: "星期四" },
+      { id: "fri", label: "五", full: "星期五" }
+    ];
+
+    var ROWS = [
+      { type: "lesson", label: "第一節", time: "08:30–09:10", index: 0 },
+      { type: "lesson", label: "第二節", time: "09:10–09:50", index: 1 },
+      { type: "break", label: "小息 · 09:50–10:10" },
+      { type: "lesson", label: "第三節", time: "10:10–10:50", index: 2 },
+      { type: "lesson", label: "第四節", time: "10:50–11:30", index: 3 },
+      { type: "break", label: "午膳 · 11:30–12:30" },
+      { type: "lesson", label: "第五節", time: "12:30–13:10", index: 4 },
+      { type: "lesson", label: "第六節", time: "13:10–13:50", index: 5 }
+    ];
+
+    var WORK_SECONDS = 25 * 60;
+    var BREAK_SECONDS = 5 * 60;
+    var ZERO_HOLD_MS = 800;
+    var RING_C = 2 * Math.PI * 100;
+    var STORAGE_KEY = "spccps-p6-l4-study-planner-v1";
+
+    var state = {
+      tab: "homework",
+      homework: [],
+      timetable: {},
+      editingId: null,
+      slot: null,
+      focus: {
+        mode: "work",
+        remaining: WORK_SECONDS,
+        running: false,
+        holding: false,
+        endAt: 0,
+        justFinishedBreak: false
+      }
+    };
+
+    var tickId = null;
+    var holdToken = 0;
+    var homeworkReturnFocus = null;
+    var subjectReturnFocus = null;
+
+    function uid() {
+      if (window.crypto && typeof crypto.randomUUID === "function") {
+        try { return crypto.randomUUID(); } catch (err) {}
+      }
+      return "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+    }
+
+    function toISO(date) {
+      var y = date.getFullYear();
+      var m = String(date.getMonth() + 1).padStart(2, "0");
+      var d = String(date.getDate()).padStart(2, "0");
+      return y + "-" + m + "-" + d;
+    }
+
+    function todayISO() {
+      return toISO(new Date());
+    }
+
+    function addDays(iso, days) {
+      var parts = iso.split("-");
+      var date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      date.setDate(date.getDate() + days);
+      return toISO(date);
+    }
+
+    function validISO(iso) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+      var parts = iso.split("-");
+      var y = Number(parts[0]);
+      var m = Number(parts[1]);
+      var d = Number(parts[2]);
+      var date = new Date(y, m - 1, d);
+      return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
+    }
+
+    function subjectById(id) {
+      for (var i = 0; i < SUBJECTS.length; i++) {
+        if (SUBJECTS[i].id === id) return SUBJECTS[i];
+      }
+      return null;
+    }
+
+    // Date only. A task due today is not overdue. Finished tasks are not overdue.
+    function isOverdue(item) {
+      return !item.done && item.due < todayISO();
+    }
+
+    function formatDue(iso) {
+      var today = todayISO();
+      if (iso === today) return "今天";
+      if (iso === addDays(today, 1)) return "明天";
+      if (iso === addDays(today, -1)) return "昨天";
+      var parts = iso.split("-");
+      var date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      var week = "日一二三四五六".charAt(date.getDay());
+      return Number(parts[1]) + "月" + Number(parts[2]) + "日（" + week + "）";
+    }
+
+    function formatClock(seconds) {
+      var safe = Math.max(0, Math.floor(seconds));
+      var m = Math.floor(safe / 60);
+      var s = safe % 60;
+      return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+    }
+
+    function todayDayId() {
+      return { 1: "mon", 2: "tue", 3: "wed", 4: "thu", 5: "fri" }[new Date().getDay()] || "";
+    }
+
+    function defaultTimetable() {
+      return {
+        mon: ["chi", "eng", "math", "gs", "chi", "math"],
+        tue: ["eng", "math", "gs", "chi", "eng", "gs"],
+        wed: ["math", "chi", "eng", "math", "gs", "eng"],
+        thu: ["gs", "chi", "math", "eng", "chi", "math"],
+        fri: ["eng", "gs", "chi", "math", "eng", "gs"]
+      };
+    }
+
+    function defaultHomework() {
+      var today = todayISO();
+      return [
+        { id: uid(), title: "數學工作紙", subject: "math", due: addDays(today, -1), done: false },
+        { id: uid(), title: "英文閱讀", subject: "eng", due: today, done: false },
+        { id: uid(), title: "中文詞語練習", subject: "chi", due: addDays(today, 1), done: true },
+        { id: uid(), title: "常識筆記", subject: "gs", due: addDays(today, 3), done: false }
+      ];
+    }
+
+    function normalizeHomework(list) {
+      if (!Array.isArray(list)) return [];
+      return list.filter(function (item) {
+        return item && typeof item.title === "string" && validISO(item.due) && subjectById(item.subject);
+      }).map(function (item) {
+        return {
+          id: String(item.id || uid()),
+          title: item.title.trim().slice(0, 80),
+          subject: item.subject,
+          due: item.due,
+          done: !!item.done
+        };
+      }).filter(function (item) { return item.title.length > 0; });
+    }
+
+    function normalizeTimetable(raw) {
+      var base = defaultTimetable();
+      var out = {};
+      DAYS.forEach(function (day) {
+        var src = raw && Array.isArray(raw[day.id]) ? raw[day.id] : [];
+        out[day.id] = base[day.id].map(function (fallback, index) {
+          return subjectById(src[index]) ? src[index] : fallback;
+        });
+      });
+      return out;
+    }
+
+    function save() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          homework: state.homework,
+          timetable: state.timetable
+        }));
+      } catch (err) {}
+    }
+
+    function load() {
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (raw == null) {
+          state.homework = defaultHomework();
+          state.timetable = defaultTimetable();
+          save();
+          return;
+        }
+        var data = JSON.parse(raw);
+        state.homework = normalizeHomework(data && data.homework);
+        state.timetable = normalizeTimetable(data && data.timetable);
+      } catch (err) {
+        state.homework = defaultHomework();
+        state.timetable = defaultTimetable();
+        save();
+      }
+    }
+
+    function sortedHomework() {
+      return state.homework.slice().sort(function (a, b) {
+        if (a.due < b.due) return -1;
+        if (a.due > b.due) return 1;
+        return a.title.localeCompare(b.title, "zh-Hant");
+      });
+    }
+
+    function el(tag, attrs, children) {
+      var node = document.createElement(tag);
+      if (attrs) {
+        Object.keys(attrs).forEach(function (key) {
+          var value = attrs[key];
+          if (value == null || value === false) return;
+          if (key === "class") node.className = value;
+          else if (key === "text") node.textContent = value;
+          else node.setAttribute(key, value === true ? "" : String(value));
+        });
+      }
+      (children || []).forEach(function (child) {
+        if (child == null || child === false) return;
+        node.appendChild(typeof child === "string" ? document.createTextNode(child) : child);
+      });
+      return node;
+    }
+
+    function svg(markup) {
+      var template = document.createElement("template");
+      template.innerHTML = markup.trim();
+      return template.content.firstChild;
+    }
+
+    function clearNode(node) {
+      while (node.firstChild) node.removeChild(node.firstChild);
+    }
+
+    function updateHeader() {
+      var title = document.getElementById("screen-title");
+      var sub = document.getElementById("screen-sub");
+      var add = document.getElementById("add-btn");
+      if (state.tab === "homework") {
+        var openCount = state.homework.filter(function (item) { return !item.done; }).length;
+        var late = state.homework.filter(isOverdue).length;
+        title.textContent = "功課";
+        if (state.homework.length === 0) sub.textContent = "新增第一項功課";
+        else if (late > 0) sub.textContent = late + " 項逾期 · " + openCount + " 項未完成";
+        else if (openCount === 0) sub.textContent = "全部完成";
+        else sub.textContent = openCount + " 項未完成";
+        sub.classList.toggle("is-alert", late > 0);
+        add.hidden = false;
+      } else if (state.tab === "timetable") {
+        title.textContent = "時間表";
+        sub.textContent = "星期一至五 · 點按課節更改科目";
+        sub.classList.remove("is-alert");
+        add.hidden = true;
+      } else {
+        title.textContent = "專注";
+        sub.textContent = "25 分鐘專注 · 5 分鐘休息";
+        sub.classList.remove("is-alert");
+        add.hidden = true;
+      }
+    }
+
+    function setTab(tab) {
+      if (tab !== "homework" && tab !== "timetable" && tab !== "focus") return;
+      state.tab = tab;
+      closeHomeworkSheet();
+      closeSubjectSheet();
+      ["homework", "timetable", "focus"].forEach(function (name) {
+        var panel = document.getElementById("panel-" + name);
+        var button = document.getElementById("tab-" + name);
+        var on = name === tab;
+        panel.hidden = !on;
+        button.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      updateHeader();
+    }
+
+    function renderHomework() {
+      var panel = document.getElementById("panel-homework");
+      clearNode(panel);
+      updateHeader();
+      if (state.homework.length === 0) {
+        panel.appendChild(el("div", { class: "empty" }, [
+          el("p", { class: "empty-title", text: "還沒有功課" }),
+          el("p", { text: "按右上角 + 加入標題、科目和截止日期。" })
+        ]));
+        return;
+      }
+
+      panel.appendChild(el("p", { class: "sort-hint", text: "按截止日期排列，最近的在最前" }));
+      var list = el("div", { class: "list" });
+      sortedHomework().forEach(function (item) {
+        var subject = subjectById(item.subject);
+        var overdue = isOverdue(item);
+        var dueText = formatDue(item.due);
+        if (item.done) dueText += " · 已完成";
+        else if (overdue) dueText += " · 逾期";
+        var cardClass = "card";
+        if (item.done) cardClass += " done";
+        else if (overdue) cardClass += " overdue";
+
+        list.appendChild(el("article", {
+          class: cardClass,
+          "data-id": item.id,
+          "data-due": item.due,
+          "data-done": item.done ? "true" : "false",
+          "data-overdue": overdue ? "true" : "false"
+        }, [
+          el("button", {
+            type: "button",
+            class: "check",
+            "data-check": item.id,
+            "aria-pressed": item.done ? "true" : "false",
+            "aria-label": item.done
+              ? "將「" + item.title + "」標為未完成"
+              : "將「" + item.title + "」標為已完成"
+          }, [
+            el("span", { class: "box" }, [
+              svg('<svg viewBox="0 0 24 24" class="tick" aria-hidden="true"><path d="M6 12.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>')
+            ])
+          ]),
+          el("button", { type: "button", class: "open", "data-open": item.id }, [
+            el("span", { class: "open-text" }, [
+              el("span", { class: "hw-title", text: item.title }),
+              el("span", { class: "meta" }, [
+                el("span", { class: "tag " + subject.className, text: subject.label }),
+                el("span", { class: "hw-due", text: dueText })
+              ])
+            ]),
+            svg('<svg viewBox="0 0 24 24" class="chevron" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>')
+          ])
+        ]));
+      });
+      panel.appendChild(list);
+    }
+
+    function renderTimetable() {
+      var panel = document.getElementById("panel-timetable");
+      clearNode(panel);
+      var today = todayDayId();
+      var wrap = el("div", { class: "tt" });
+      var head = el("div", { class: "tt-head" });
+      head.appendChild(el("div", { class: "corner", text: "節" }));
+      DAYS.forEach(function (day) {
+        head.appendChild(el("div", {
+          class: "day-h" + (day.id === today ? " is-today" : ""),
+          text: day.label
+        }));
+      });
+      wrap.appendChild(head);
+
+      ROWS.forEach(function (row) {
+        if (row.type === "break") {
+          wrap.appendChild(el("div", { class: "break-row", text: row.label }));
+          return;
+        }
+        var line = el("div", { class: "tt-row" });
+        line.appendChild(el("div", { class: "period" }, [
+          el("b", { text: row.label }),
+          el("small", { text: row.time })
+        ]));
+        DAYS.forEach(function (day) {
+          var subjectId = state.timetable[day.id][row.index];
+          var subject = subjectById(subjectId);
+          line.appendChild(el("button", {
+            type: "button",
+            class: "slot " + subject.className + (day.id === today ? " is-today" : ""),
+            "data-day": day.id,
+            "data-slot": String(row.index),
+            text: subject.label,
+            "aria-label": day.full + " " + row.label + " " + subject.label + "，點按更改"
+          }));
+        });
+        wrap.appendChild(line);
+      });
+      panel.appendChild(wrap);
+    }
+
+    function focusCopy() {
+      var focus = state.focus;
+      var work = focus.mode === "work";
+      if (focus.holding) {
+        return {
+          kicker: work ? "專注" : "休息",
+          status: "時間到",
+          note: work ? "已停在 0:00，即將開始 5 分鐘休息。" : "休息已停在 0:00，即將回到專注。"
+        };
+      }
+      if (focus.justFinishedBreak && work && !focus.running) {
+        return {
+          kicker: "專注",
+          status: "休息結束",
+          note: "可以開始下一輪 25 分鐘專注。"
+        };
+      }
+      if (focus.running && work) {
+        return {
+          kicker: "專注",
+          status: "專注中",
+          note: "到 0:00 會停止，並自動開始 5 分鐘休息。"
+        };
+      }
+      if (focus.running && !work) {
+        return {
+          kicker: "休息",
+          status: "休息中",
+          note: "到 0:00 會停止，然後回到專注。"
+        };
+      }
+      if (!work) {
+        return {
+          kicker: "休息",
+          status: "休息已暫停",
+          note: "按「開始」繼續休息。到 0:00 會停止。"
+        };
+      }
+      if (focus.remaining < WORK_SECONDS) {
+        return {
+          kicker: "專注",
+          status: "已暫停",
+          note: "按「開始」繼續這輪專注。"
+        };
+      }
+      return {
+        kicker: "專注",
+        status: "準備開始",
+        note: "按「開始」專注 25 分鐘。到 0:00 會停止，並自動開始 5 分鐘休息。"
+      };
+    }
+
+    function renderFocus() {
+      var panel = document.getElementById("panel-focus");
+      var copy = focusCopy();
+      var total = state.focus.mode === "work" ? WORK_SECONDS : BREAK_SECONDS;
+      var ratio = total === 0 ? 0 : Math.max(0, Math.min(1, state.focus.remaining / total));
+      panel.classList.toggle("is-break", state.focus.mode === "break");
+      document.getElementById("focus-kicker").textContent = copy.kicker;
+      document.getElementById("focus-clock").textContent = formatClock(state.focus.remaining);
+      document.getElementById("focus-status").textContent = copy.status;
+      document.getElementById("focus-note").textContent = copy.note;
+      var ring = document.getElementById("ring-value");
+      ring.style.strokeDasharray = String(RING_C);
+      ring.style.strokeDashoffset = String(RING_C * (1 - ratio));
+      var toggle = document.getElementById("focus-toggle");
+      toggle.textContent = state.focus.running ? "暫停" : "開始";
+      toggle.setAttribute("aria-pressed", state.focus.running ? "true" : "false");
+      toggle.disabled = state.focus.holding;
+      document.getElementById("focus-reset").disabled = state.focus.holding;
+    }
+
+    function syncModal() {
+      var open = !document.getElementById("hw-sheet").hidden || !document.getElementById("sub-sheet").hidden;
+      document.querySelector(".app").classList.toggle("is-modal", open);
+    }
+
+    function openHomeworkSheet(id) {
+      closeSubjectSheet();
+      var item = null;
+      if (id) {
+        item = state.homework.find(function (hw) { return hw.id === id; }) || null;
+      }
+      state.editingId = item ? item.id : null;
+      homeworkReturnFocus = document.activeElement;
+      document.getElementById("hw-form-title").textContent = item ? "編輯功課" : "新增功課";
+      document.getElementById("hw-title").value = item ? item.title : "";
+      document.getElementById("hw-due").value = item ? item.due : todayISO();
+      var subject = item ? item.subject : "chi";
+      document.querySelectorAll('input[name="subject"]').forEach(function (input) {
+        input.checked = input.value === subject;
+      });
+      var error = document.getElementById("hw-error");
+      error.hidden = true;
+      error.textContent = "";
+      document.getElementById("hw-delete").hidden = !item;
+      document.getElementById("hw-submit").textContent = item ? "儲存" : "加入";
+      document.getElementById("hw-sheet").hidden = false;
+      syncModal();
+      document.getElementById("hw-title").focus();
+    }
+
+    function closeHomeworkSheet() {
+      var sheet = document.getElementById("hw-sheet");
+      var wasOpen = !sheet.hidden;
+      sheet.hidden = true;
+      state.editingId = null;
+      syncModal();
+      if (wasOpen && homeworkReturnFocus && homeworkReturnFocus.focus) {
+        homeworkReturnFocus.focus();
+      }
+      homeworkReturnFocus = null;
+    }
+
+    function showError(message) {
+      var node = document.getElementById("hw-error");
+      node.textContent = message;
+      node.hidden = false;
+    }
+
+    function onHomeworkSubmit(event) {
+      event.preventDefault();
+      var title = document.getElementById("hw-title").value.trim().slice(0, 80);
+      var due = document.getElementById("hw-due").value;
+      var selected = document.querySelector('input[name="subject"]:checked');
+      var subject = selected ? selected.value : "";
+      if (!title) {
+        showError("請輸入標題");
+        document.getElementById("hw-title").focus();
+        return;
+      }
+      if (!subjectById(subject)) {
+        showError("請選擇科目");
+        return;
+      }
+      if (!validISO(due)) {
+        showError("請選擇截止日期");
+        document.getElementById("hw-due").focus();
+        return;
+      }
+      if (state.editingId) {
+        var existing = state.homework.find(function (item) { return item.id === state.editingId; });
+        if (!existing) {
+          closeHomeworkSheet();
+          return;
+        }
+        existing.title = title;
+        existing.subject = subject;
+        existing.due = due;
+      } else {
+        state.homework.push({ id: uid(), title: title, subject: subject, due: due, done: false });
+      }
+      save();
+      closeHomeworkSheet();
+      renderHomework();
+    }
+
+    function deleteEditing() {
+      if (!state.editingId) return;
+      var id = state.editingId;
+      state.homework = state.homework.filter(function (item) { return item.id !== id; });
+      save();
+      closeHomeworkSheet();
+      renderHomework();
+    }
+
+    function toggleDone(id) {
+      var item = state.homework.find(function (hw) { return hw.id === id; });
+      if (!item) return;
+      item.done = !item.done;
+      save();
+      renderHomework();
+    }
+
+    function openSubjectSheet(dayId, index) {
+      closeHomeworkSheet();
+      var day = DAYS.filter(function (item) { return item.id === dayId; })[0];
+      var row = ROWS.filter(function (item) { return item.type === "lesson" && item.index === index; })[0];
+      if (!day || !row) return;
+      state.slot = { dayId: dayId, index: index };
+      subjectReturnFocus = document.activeElement;
+      document.getElementById("sub-where").textContent = day.full + " · " + row.label;
+      var current = state.timetable[dayId][index];
+      document.querySelectorAll("#sub-choices .choice").forEach(function (button) {
+        button.setAttribute("aria-pressed", button.getAttribute("data-subject") === current ? "true" : "false");
+      });
+      document.getElementById("sub-sheet").hidden = false;
+      syncModal();
+      var pressed = document.querySelector('#sub-choices .choice[aria-pressed="true"]');
+      if (pressed) pressed.focus();
+    }
+
+    function closeSubjectSheet() {
+      var sheet = document.getElementById("sub-sheet");
+      var wasOpen = !sheet.hidden;
+      sheet.hidden = true;
+      state.slot = null;
+      syncModal();
+      if (wasOpen && subjectReturnFocus && subjectReturnFocus.focus) {
+        subjectReturnFocus.focus();
+      }
+      subjectReturnFocus = null;
+    }
+
+    function chooseSubject(subjectId) {
+      if (!state.slot || !subjectById(subjectId)) return;
+      state.timetable[state.slot.dayId][state.slot.index] = subjectId;
+      save();
+      closeSubjectSheet();
+      renderTimetable();
+    }
+
+    function startFocus() {
+      if (state.focus.holding || state.focus.running) return;
+      if (state.focus.remaining <= 0) {
+        state.focus.remaining = state.focus.mode === "work" ? WORK_SECONDS : BREAK_SECONDS;
+      }
+      state.focus.justFinishedBreak = false;
+      state.focus.running = true;
+      state.focus.endAt = Date.now() + state.focus.remaining * 1000;
+      if (tickId) clearInterval(tickId);
+      tickId = setInterval(tick, 200);
+      renderFocus();
+    }
+
+    function pauseFocus() {
+      if (!state.focus.running) return;
+      var leftMs = state.focus.endAt - Date.now();
+      if (tickId) {
+        clearInterval(tickId);
+        tickId = null;
+      }
+      state.focus.running = false;
+      if (leftMs <= 0) {
+        completePhase();
+        return;
+      }
+      state.focus.remaining = Math.ceil(leftMs / 1000);
+      renderFocus();
+    }
+
+    function resetFocus() {
+      holdToken += 1;
+      if (tickId) {
+        clearInterval(tickId);
+        tickId = null;
+      }
+      state.focus.holding = false;
+      state.focus.running = false;
+      state.focus.mode = "work";
+      state.focus.remaining = WORK_SECONDS;
+      state.focus.justFinishedBreak = false;
+      state.focus.endAt = 0;
+      renderFocus();
+    }
+
+    // Stop at 0:00 (never below). After work, start the 5-minute break.
+    // After a break, stop and arm the next 25-minute focus.
+    function completePhase() {
+      if (state.focus.holding) return;
+      if (tickId) {
+        clearInterval(tickId);
+        tickId = null;
+      }
+      state.focus.running = false;
+      state.focus.remaining = 0;
+      state.focus.holding = true;
+      var token = ++holdToken;
+      var finished = state.focus.mode;
+      renderFocus();
+      window.setTimeout(function () {
+        if (token !== holdToken) return;
+        state.focus.holding = false;
+        if (finished === "work") {
+          state.focus.mode = "break";
+          state.focus.remaining = BREAK_SECONDS;
+          startFocus();
+          return;
+        }
+        state.focus.mode = "work";
+        state.focus.remaining = WORK_SECONDS;
+        state.focus.justFinishedBreak = true;
+        renderFocus();
+      }, ZERO_HOLD_MS);
+    }
+
+    function tick() {
+      if (!state.focus.running) return;
+      var leftMs = state.focus.endAt - Date.now();
+      if (leftMs <= 0) {
+        completePhase();
+        return;
+      }
+      var next = Math.ceil(leftMs / 1000);
+      if (next !== state.focus.remaining) {
+        state.focus.remaining = next;
+        renderFocus();
+      }
+    }
+
+    function bind() {
+      document.querySelector(".tabs").addEventListener("click", function (event) {
+        var tab = event.target.closest("[data-tab]");
+        if (tab) setTab(tab.getAttribute("data-tab"));
+      });
+
+      document.getElementById("add-btn").addEventListener("click", function () {
+        openHomeworkSheet(null);
+      });
+
+      document.getElementById("panel-homework").addEventListener("click", function (event) {
+        var check = event.target.closest("[data-check]");
+        if (check) {
+          toggleDone(check.getAttribute("data-check"));
+          return;
+        }
+        var open = event.target.closest("[data-open]");
+        if (open) openHomeworkSheet(open.getAttribute("data-open"));
+      });
+
+      document.getElementById("panel-timetable").addEventListener("click", function (event) {
+        var slot = event.target.closest("[data-slot]");
+        if (!slot) return;
+        openSubjectSheet(slot.getAttribute("data-day"), Number(slot.getAttribute("data-slot")));
+      });
+
+      document.getElementById("hw-form").addEventListener("submit", onHomeworkSubmit);
+      document.getElementById("hw-cancel").addEventListener("click", closeHomeworkSheet);
+      document.getElementById("hw-delete").addEventListener("click", deleteEditing);
+      document.getElementById("hw-sheet").addEventListener("click", function (event) {
+        if (event.target.id === "hw-sheet") closeHomeworkSheet();
+      });
+
+      document.getElementById("sub-choices").addEventListener("click", function (event) {
+        var choice = event.target.closest("[data-subject]");
+        if (choice) chooseSubject(choice.getAttribute("data-subject"));
+      });
+      document.getElementById("sub-cancel").addEventListener("click", closeSubjectSheet);
+      document.getElementById("sub-sheet").addEventListener("click", function (event) {
+        if (event.target.id === "sub-sheet") closeSubjectSheet();
+      });
+
+      document.getElementById("focus-toggle").addEventListener("click", function () {
+        if (state.focus.running) pauseFocus();
+        else startFocus();
+      });
+      document.getElementById("focus-reset").addEventListener("click", resetFocus);
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          closeHomeworkSheet();
+          closeSubjectSheet();
+        }
+      });
+
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible") tick();
+      });
+    }
+
+    load();
+    bind();
+    renderHomework();
+    renderTimetable();
+    renderFocus();
+    setTab("homework");
+  </script>
+</body>
+</html>
